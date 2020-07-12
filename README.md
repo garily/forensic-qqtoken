@@ -75,11 +75,11 @@ __要求条件：__
 
 下面将会介绍如何提取 `secret`：
 
-1. 确保“QQ安全中心”已经退出。
+1. 确保“QQ安全中心”已经退出。(所有操作完成后可重新登录，不影响 `secret` 有效性)
 
 2. 查看 `/data/data/com.tencent.token/shared_prefs/token_save_info.xml` 文件的内容。
 
-   你可以用adb来查看：
+   你可以用 `adb` 来查看：
 
    ```console
    $ adb shell
@@ -98,7 +98,16 @@ __要求条件：__
 
    每次“QQ安全中心”退出，这个值都会变化。
 
-3. 提取 `mobiletoken.db`：
+3. 你还需要设备的 `serialno` 和 `cpuinfo` 里的 `Serial` （后者一般为全 `0`）。这些也可以用 `adb` 查看（接步骤 2，示例中 serialno 为模拟器生成的，实体设备类似，不带方括号）:
+
+    ```
+    gemini:/ # getprop | grep ro.boot.serialno
+    [ro.boot.serialno]: [EMULATOR30X0X0X0]
+    gemini:/ # cat /proc/cpuinfo | grep Serial
+    Serial		: 0000000000000000
+    ```
+
+4. 提取 `mobiletoken.db`：
 
    ```console
    $ adb root
@@ -107,7 +116,19 @@ __要求条件：__
    /data/data/com.tencent.token/databases/mobiletoken.db: 1 file pulled. 0.9 MB/s (13312 bytes in 0.013s)
    ```
 
-4. 使用 `decrypt-database.py` 解密 `mobiletoken.db`：
+5. 安装必备组件
+   
+   ```
+   pip install -r requirements.txt
+   ```
+
+6. 把 `decrypt-database.py` 中 137 行的 `[serialno]` 和 `[cpu_serial]` 替换为步骤 3 中获得的信息（不带方括号）：
+
+   ```
+   g_device_salt = wcdb_generate_device_salt(b'[EMULATOR30X0X0X0]', b'[0000000000000000]')
+   ```
+   
+   使用 `decrypt-database.py` 解密 `mobiletoken.db`：
 
    ```
    Usage:
@@ -120,7 +141,7 @@ __要求条件：__
    $ ./decrypt-database.py ./mobiletoken.db
    ```
 
-5. 查看加密的 `secret`：
+7. 查看加密的 `secret`：
 
    ```console
    $ sqlite3 ./mobiletoken.db 
@@ -133,7 +154,7 @@ __要求条件：__
 
    其中 `AE28874351F682CFDD5263E3D71D74E7D8847F00D157923539811AD0920499B9A88A5B8021C1ED2E7B20BD597ADA33AE` 就是加密的 `secret`。
 
-6. 解密出 `secret`：
+8. 解密出 `secret`：
 
    ```
    Usage:

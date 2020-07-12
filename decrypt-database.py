@@ -134,7 +134,7 @@ def wcdb_decrypt_left_pages(raw, page_size, device_salt, password):
 
     return bytes(raw_dec)
 
-g_device_salt = wcdb_generate_device_salt(b'', b'')
+g_device_salt = wcdb_generate_device_salt(b'[serialno]', b'[cpu_serial]')
 
 with open(sys.argv[1], 'rb') as f:
     raw_enc = f.read()

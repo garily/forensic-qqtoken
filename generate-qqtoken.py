@@ -2,6 +2,7 @@
 import sys
 from hashlib import sha256
 from datetime import datetime, timezone, timedelta
+import pytz
 
 def GenerateQQTokenSerial(secret: bytes):
     digest = sha256(
@@ -27,9 +28,8 @@ def GenerateQQTokenSerial(secret: bytes):
 
     return '%s-%s-%s-%s' % (serial[0:4], serial[4:8], serial[8:12], serial[12:16])
 
-def GenerateQQTokenCode(currentTimeMillis: int, secret: bytes):
-    tz_beijing = timezone(timedelta(hours = +8))
-    dt_beijing = datetime.fromtimestamp(currentTimeMillis // 1000).replace(tzinfo = tz_beijing)
+def GenerateQQTokenCode(secret: bytes):
+    dt_beijing = datetime.now(pytz.timezone('Asia/Shanghai'))
 
     digest = sha256(secret + b'%d-%02d-%02d %02d:%02d:%02d' % (
         dt_beijing.year,
@@ -62,7 +62,6 @@ def GenerateQQTokenCode(currentTimeMillis: int, secret: bytes):
 
 print(
     GenerateQQTokenCode(
-        int(datetime.now().timestamp() * 1000), 
         bytes.fromhex(sys.argv[1])
     )
 )
